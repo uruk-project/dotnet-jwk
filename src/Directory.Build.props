@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <VersionMajor Condition="'$(VersionMajor)' == ''">1</VersionMajor>
+    <VersionMinor Condition="'$(VersionMinor)' == ''">0</VersionMinor>
+    <VersionPatch Condition="'$(VersionPatch)' == ''">0</VersionPatch>
+    <BuildNumber Condition="'$(BuildNumber)' == ''">0</BuildNumber>
+    
+    <Version>$(VersionMajor).$(VersionMinor).$(VersionPatch)</Version>
+    <VersionSuffix></VersionSuffix>
+    <VersionSuffix Condition="'$(VersionSuffix)' != ''">-$(VersionSuffix)</VersionSuffix>
+    <PackageVersion>$(VersionMajor).$(VersionMinor).$(VersionPatch)$(VersionSuffix)</PackageVersion>
+    <AssemblyVersion Condition="'$(AssemblyVersion)' == ''">$(VersionMajor).$(VersionMinor).$(VersionPatch)</AssemblyVersion>
+    
+    <Authors>Yann Crumeyrolle</Authors>
+    <Company>Yann Crumeyrolle</Company>
+    <Copyright>Copyright © Yann Crumeyrolle 2021</Copyright>
+    <PackageProjectUrl>https://github.com/uruk-project/dotnet-jwk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/uruk-project/dotnet-jwk</RepositoryUrl>
+    <PackageTags>jwk security key management dotnet dotnet-jwk CLI</PackageTags>
+    <Description>
+      Command line tool for managing JWK (JSON Web Key)
+    </Description>
+    <sumary>JWK management command line interface.</sumary>
+    <PackageLicense>MIT</PackageLicense>
+  </PropertyGroup>
+</Project>
