@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine.IO;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -95,7 +96,6 @@ namespace JsonWebToken.Tools.Jwk.Tests
                 {
                     Assert.Equal(publicOutputPath, store.file2);
                 }
-
             }
             else
             {
@@ -120,7 +120,6 @@ namespace JsonWebToken.Tools.Jwk.Tests
             Assert.ThrowsAnyAsync<InvalidOperationException>(() => command.InvokeAsync(console));
         }
 
-
         [InlineData("./output.jwk", null, null, null, null, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", "./public.jwk", null, null, null, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, "password", null, null, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
@@ -139,6 +138,12 @@ namespace JsonWebToken.Tools.Jwk.Tests
         [Theory]
         public async Task Execute_EC(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
+            // secp256k1 is not supported on MacOS
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && (curve == "secp256k1" || curve == "ES256X"))
+            {
+                return;
+            }
+
             TestStore store = new TestStore();
             var command = new NewCommand.NewECHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, curve, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
@@ -157,7 +162,6 @@ namespace JsonWebToken.Tools.Jwk.Tests
                 {
                     Assert.Equal(publicOutputPath, store.file2);
                 }
-
             }
             else
             {
