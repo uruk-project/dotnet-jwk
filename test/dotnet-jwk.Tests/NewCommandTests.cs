@@ -139,7 +139,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_EC(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             // secp256k1 is not supported on MacOS
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && (curve == "secp256k1" || curve == "ES256X"))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && (curve == "secp256k1" || curve == "P-256X"))
             {
                 return;
             }
