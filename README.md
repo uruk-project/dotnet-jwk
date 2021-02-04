@@ -148,7 +148,7 @@ Options:
   --no-kid                                                                          Does not auto-generate a key identifier.
   --force                                                                           Erase the output file whether it exist.
   -v, --verbose                                                                     Show verbose output.
-  -?, -h, --help                                                                    Show help and usage information                                        Show help and usage information
+  -?, -h, --help                                                                    Show help and usage information
 ```
 
 ### Example
@@ -217,7 +217,13 @@ The `-k` option must not be used with the option `-i`.
 ### Example
 Example | Description
 --|--
-dotnet-jwk decrypt -k eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJlbmMiOiJBMTI4Q0JDLUhTMjU2Iiwia2lkIjoiMnd3U0ZpSFRvV0J1VzdNR180Q1UtTkY3cFVRcTFYd3ZiZUZwX01HdGdNVSIsInR5cCI6InBsYWluIiwicDJzIjoieW5aei1KeUh4QWMiLCJwMmMiOjEwMDB9.XGN9I2AfqwjOo2j_cYXKXcxGYTlEXArDXNPOsEV8MHG8wjs8-sSyYQ.ZD_10qOGWD_fT3Ank5bhiQ.9b5ddA4Dooc5hk0gtzeDjZMud7bFACfuYCzqwI9_9tVgMwxGM4uiy9ubWTcxhCHpS5Uirixh0sojTS-A9E402CBTTCXyh38xg3qMF-lpEi2PVkQ0GfOJ-o0CgyIAqToIjdm3LkDseVkZz_sM1LyMFA.ghH8Ily6BnkhtCPrDAf2uw -p P@ssw0rd | Decrypts the encrypted JWK with the password `P@ssw0rd`
+dotnet-jwk decrypt -k eyJhbGciOiJQQkVTMi1IUzI1NitBMTI4S1ciLCJlbmMiOi<br />
+JBMTI4Q0JDLUhTMjU2Iiwia2lkIjoiMnd3U0ZpSFRvV0J1VzdNR180Q1UtTkY3cFVRcT<br />
+FYd3ZiZUZwX01HdGdNVSIsInR5cCI6InBsYWluIiwicDJzIjoieW5aei1KeUh4QWMiLC<br />
+JwMmMiOjEwMDB9.XGN9I2AfqwjOo2j_cYXKXcxGYTlEXArDXNPOsEV8MHG8wjs8-sSyY<br />
+Q.ZD_10qOGWD_fT3Ank5bhiQ.9b5ddA4Dooc5hk0gtzeDjZMud7bFACfuYCzqwI9_9tV<br />
+gMwxGM4uiy9ubWTcxhCHpS5Uirixh0sojTS-A9E402CBTTCXyh38xg3qMF-lpEi2PVkQ<br />
+0GfOJ-o0CgyIAqToIjdm3LkDseVkZz_sM1LyMFA.ghH8Ily6BnkhtCPrDAf2uw -p P@ssw0rd | Decrypts the encrypted JWK with the password `P@ssw0rd`
 dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd | Encrypts the JWK located in the file `jwk.json` with the password `P@ssw0rd`
 dotnet-jwk decrypt -k `"{""kty"":'"oct"",""k"":""FxjKToF2GpDacyDEP-LMHA""}"` -p P@ssw0rd --iteration-count 100000 --salt-size 128 | Encrypts the JWK with the password `P@ssw0rd`, with 100000 iterations, and a salt of 128 bits
 dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd -o ./decrypted.json | Encrypts the JWK located in the file `encrypted.json` with the password `P@ssw0rd`, and store it into the file `decrypted.json`
