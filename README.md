@@ -1,6 +1,4 @@
 # dotnet-jwk
-Home for the dotnet-jwk command
-
 `dotnet-jwk` is a JSON Web Key manager for `dotnet`.
 It allow to generate, encrypt, decrypt, convert and check JWK.
 
