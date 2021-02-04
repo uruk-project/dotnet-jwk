@@ -218,8 +218,8 @@ The `-k` option must not be used with the option `-i`.
 Example | Description
 --|--
 dotnet-jwk decrypt -k `eyJhbGciOiJQQkVTMi1IUzI1NitBMTI[...]4S1ciLCJlbmMBnkhtCPrDAf2uw` -p P@ssw0rd | Decrypts the encrypted JWK with the password `P@ssw0rd`
-dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd | Encrypts the JWK located in the file `jwk.json` with the password `P@ssw0rd`
-dotnet-jwk decrypt -k `"{""kty"":'"oct"",""k"":""FxjKToF2GpDacyDEP-LMHA""}"` -p P@ssw0rd --iteration-count 100000 --salt-size 128 | Encrypts the JWK with the password `P@ssw0rd`, with 100000 iterations, and a salt of 128 bits
+dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd | Decrypts the JWK located in the file `encrypted.json` with the password `P@ssw0rd`
+dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd --iteration-count 100000 --salt-size 128 | Decrypts the JWK located in the file `encrypted.json` with the password `P@ssw0rd`, with 100000 iterations, and a salt of 128 bits
 dotnet-jwk decrypt -i ./encrypted.json -p P@ssw0rd -o ./decrypted.json | Encrypts the JWK located in the file `encrypted.json` with the password `P@ssw0rd`, and store it into the file `decrypted.json`
 
 
