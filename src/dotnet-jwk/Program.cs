@@ -14,7 +14,18 @@ namespace JsonWebToken.Tools.Jwk
 
         private static async Task<int> Main(string[] args)
         {
-            var rootCommand = new RootCommand("Manages JSON Web Keys")
+            var rootCommand = CreateCommand();
+            Parser parser = BuildParser(rootCommand);
+
+            _parseResult = parser.Parse(args);
+            ConsoleExtensions.IsVerbose = _parseResult.HasOption("--verbose");
+
+            return await parser.InvokeAsync(args);
+        }
+
+        internal static RootCommand CreateCommand()
+        {
+            return new RootCommand("Manages JSON Web Keys")
             {
                 NewCommand.Create(),
                 EncryptCommand.Create(),
@@ -22,13 +33,6 @@ namespace JsonWebToken.Tools.Jwk
                 ConvertCommand.Create(),
                 CheckCommand.Create()
             };
-            Parser parser = BuildParser(rootCommand);
-
-            // Parse the incoming args so we can give warnings when deprecated options are used.
-            _parseResult = parser.Parse(args);
-            ConsoleExtensions.IsVerbose = _parseResult.HasOption("--verbose");
-
-            return await parser.InvokeAsync(args);
         }
 
         private static Parser BuildParser(RootCommand command)

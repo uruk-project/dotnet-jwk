@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace JsonWebToken.Tools.Jwk
 {
-    public abstract class TransformKeyCommand : ICommandHandler
+    public abstract class CryptKeyCommand : ICommandHandler
     {
         protected string? _key;
         protected string _password;
@@ -20,7 +20,7 @@ namespace JsonWebToken.Tools.Jwk
         private readonly bool _force;
         private readonly IStore _store;
 
-        protected TransformKeyCommand(string? key, string password, uint? iterationCount, uint? saltSize, FileInfo? inputPath, FileInfo? outputPath, bool force, IStore store)
+        protected CryptKeyCommand(string? key, string password, uint? iterationCount, uint? saltSize, FileInfo? inputPath, FileInfo? outputPath, bool force, IStore store)
         {
             _key = key;
             _password = password;

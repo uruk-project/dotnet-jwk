@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.IO;
@@ -162,7 +163,7 @@ namespace JsonWebToken.Tools.Jwk
                 .FromAmong(GetSupportedAlgorithms(command.Name)));
             command.Add(new Option<string>("--use", $"The public key intended use ({string.Join(", ", GetSupportedUse())}).")
                 .FromAmong(GetSupportedUse()));
-            command.Add(new Option<string>("--key-ops", $"The operation for which the key is intended to be used ({string.Join(", ", GetSupportedKeyOps())}).")
+            command.Add(new Option<IEnumerable<string>>("--key-ops", $"The operation for which the key is intended to be used ({string.Join(", ", GetSupportedKeyOps())}).")
                 .FromAmong(GetSupportedKeyOps()));
             command.Add(new Option<string>("--kid", "The key identifier."));
             command.Add(new Option("--no-kid", "Does not auto-generate a key identifier."));

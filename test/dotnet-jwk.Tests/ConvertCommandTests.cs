@@ -31,7 +31,7 @@ y6T3Y16v8maAqNihK6YdWZI19n2ctNWPF4PTykPnjwpauqYkB5k2wMOp
         public async Task Execute_Pem(string? data, string inputPath, string? outputPath, string? password, uint? iterationCount, uint? saltSize)
         {
             TestStore store = new TestStore(data, _certificateRaw);
-            var command = new ConvertPemCommand(password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
+            var command = new ConvertCommand.ConvertPemCommand.ConvertPemCommandHandler(password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -59,7 +59,7 @@ y6T3Y16v8maAqNihK6YdWZI19n2ctNWPF4PTykPnjwpauqYkB5k2wMOp
         public async Task Execute_X509(string certificatePassword, string? data, string inputPath, string? outputPath, string? password, uint? iterationCount, uint? saltSize)
         {
             TestStore store = new TestStore(data, _certificateRaw);
-            var command = new ConvertX509Command(certificatePassword, password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
+            var command = new ConvertCommand.ConvertX509Command.ConvertX509CommandHandler(certificatePassword, password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -86,7 +86,7 @@ y6T3Y16v8maAqNihK6YdWZI19n2ctNWPF4PTykPnjwpauqYkB5k2wMOp
         public void Execute_Fail(string certificatePassword, string? data, string inputPath, string? outputPath, string? password, uint? iterationCount, uint? saltSize)
         {
             TestStore store = new TestStore(data, _certificateRaw);
-            var command = new ConvertX509Command(certificatePassword, password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
+            var command = new ConvertCommand.ConvertX509Command.ConvertX509CommandHandler(certificatePassword, password, iterationCount, saltSize, new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAnyAsync<CryptographicException>(() => command.InvokeAsync(console));

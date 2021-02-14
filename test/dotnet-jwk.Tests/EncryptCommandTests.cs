@@ -30,7 +30,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_Success(string? input, string password, uint? iterationCount, uint? saltSize, string? inputPath, string? outputPath)
         {
             TestStore store = new TestStore(input);
-            var command = new EncryptCommand(input, password, iterationCount, saltSize, inputPath is null ? null : new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
+            var command = new EncryptCommand.EncryptCommandHandler(input, password, iterationCount, saltSize, inputPath is null ? null : new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -65,7 +65,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public void Execute_Fail(string? input, string password, uint? iterationCount, uint? saltSize, string? inputPath, string? outputPath)
         {
             TestStore store = new TestStore(input);
-            var command = new EncryptCommand(input, password, iterationCount, saltSize, inputPath is null ? null : new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
+            var command = new EncryptCommand.EncryptCommandHandler(input, password, iterationCount, saltSize, inputPath is null ? null : new FileInfo(inputPath), outputPath is null ? null : new FileInfo(outputPath), true, store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAsync<InvalidOperationException>(() => command.InvokeAsync(console));

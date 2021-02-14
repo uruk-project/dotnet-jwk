@@ -12,26 +12,312 @@ using System.Threading.Tasks;
 
 namespace JsonWebToken.Tools.Jwk
 {
-    internal class NewCommand
+    internal class NewCommand : Command
     {
+        private NewCommand()
+            : base(name: "new", description: "Creates a new JWK")
+        {
+        }
+
+        internal class NewSymmetricCommand : Command
+        {
+            public NewSymmetricCommand()
+                : base(name: "oct", description: "Creates a new JWK of type 'oct'")
+            {
+                Handler = CommandHandler.Create(typeof(NewSymmetricCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new[] { typeof(InvocationContext) })!);
+            }
+
+            internal sealed class NewSymmetricCommandHandler : NewCommandHandlerBase<SymmetricJwk>
+            {
+                private readonly int _keyLength;
+
+                public NewSymmetricCommandHandler(FileInfo? outputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
+                    : base(outputPath, null, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
+                {
+                    _keyLength = length;
+                }
+
+                protected override SymmetricJwk GenerateKey(IConsole console)
+                {
+                    SymmetricJwk key;
+                    var stopwatch = new Stopwatch();
+                    if (_keyLength != 0)
+                    {
+                        console.Verbose($@"Generating 'oct' JWK of {_keyLength} bits...");
+                        stopwatch.Start();
+                        key = SymmetricJwk.GenerateKey(_keyLength, computeThumbprint: !_noKid);
+                    }
+                    else if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
+                    {
+                        console.Verbose($@"Generating 'oct' JWK of {signatureAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
+                        stopwatch.Start();
+                        key = SymmetricJwk.GenerateKey(signatureAlgorithm, computeThumbprint: !_noKid);
+                    }
+                    else if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
+                    {
+                        console.Verbose($@"Generating 'oct' JWK of {keyManagementAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
+                        stopwatch.Start();
+                        key = SymmetricJwk.GenerateKey(keyManagementAlgorithm, computeThumbprint: !_noKid);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid key length or a valid algorithm.");
+                    }
+
+                    console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
+                    if (_kid != null)
+                    {
+                        console.Verbose($"kid: {_kid}");
+                        key.Kid = JsonEncodedText.Encode(_kid);
+                    }
+                    else if (!_noKid)
+                    {
+                        console.Verbose($"kid: {key.Kid}");
+                    }
+
+                    if (_use != null)
+                    {
+                        console.Verbose($"use: {_use}");
+                        key.Use = JsonEncodedText.Encode(_use);
+                    }
+
+                    if (_keyOps != null && _keyOps.Count != 0)
+                    {
+                        console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
+                        foreach (var keyOps in _keyOps)
+                        {
+                            if (keyOps != null)
+                            {
+                                key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
+                            }
+                        }
+                    }
+
+                    return key;
+                }
+
+                public override async Task<int> InvokeAsync(IConsole console)
+                {
+                    var key = GenerateKey(console);
+                    string value = EncryptKey(console, key);
+                    if (_outputPath is null)
+                    {
+                        console.Write(value);
+                    }
+                    else
+                    {
+                        console.Verbose($"Writing JWK into file {_outputPath}...");
+                        await _store.Write(_outputPath.FullName, value, _force);
+                        console.Verbose("Done.");
+                    }
+
+                    return 0;
+                }
+                public override Task<int> InvokeAsync(InvocationContext context)
+                {
+                    return base.InvokeAsync(context);
+                }
+            }
+        }
+
+        internal class NewRsaCommand : Command
+        {
+            public NewRsaCommand()
+                : base(name: "RSA", description: "Creates a new JWK of type 'RSA'")
+            {
+                Handler = CommandHandler.Create(typeof(NewRsaCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new[] { typeof(InvocationContext) })!);
+            }
+
+            internal sealed class NewRsaCommandHandler : NewAsymmetricCommandHandler<RsaJwk>
+            {
+                private readonly int _keyLength;
+
+                public NewRsaCommandHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
+                    : base(outputPath, publicOutputPath, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
+                {
+                    _keyLength = length;
+                }
+
+                protected override RsaJwk GenerateKey(IConsole console)
+                {
+                    RsaJwk key;
+                    var stopwatch = new Stopwatch();
+                    if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
+                    {
+                        console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits for algorithm {signatureAlgorithm}...");
+                        stopwatch.Start();
+                        key = RsaJwk.GeneratePrivateKey(_keyLength, signatureAlgorithm, computeThumbprint: !_noKid);
+                    }
+                    else if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
+                    {
+                        console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits for algorithm {keyManagementAlgorithm}...");
+                        stopwatch.Start();
+                        key = RsaJwk.GeneratePrivateKey(_keyLength, keyManagementAlgorithm, computeThumbprint: !_noKid);
+                    }
+                    else if (_keyLength != 0)
+                    {
+                        console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits...");
+                        stopwatch.Start();
+                        key = RsaJwk.GeneratePrivateKey(_keyLength, computeThumbprint: !_noKid);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid key length or a valid algorithm.");
+                    }
+
+                    console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
+                    if (_kid != null)
+                    {
+                        console.Verbose($"kid: {_kid}");
+                        key.Kid = JsonEncodedText.Encode(_kid);
+                    }
+                    else if (!_noKid)
+                    {
+                        console.Verbose($"kid: {key.Kid}");
+                    }
+
+                    if (_use != null)
+                    {
+                        console.Verbose($"use: {_use}");
+                        key.Use = JsonEncodedText.Encode(_use);
+                    }
+
+                    if (_keyOps != null && _keyOps.Count != 0)
+                    {
+                        console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
+                        foreach (var keyOps in _keyOps)
+                        {
+                            if (keyOps != null)
+                            {
+                                key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
+                            }
+                        }
+                    }
+
+                    return key;
+                }
+
+                public override Task<int> InvokeAsync(InvocationContext context)
+                {
+                    return base.InvokeAsync(context);
+                }
+            }
+        }
+
+        internal class NewECCommand : Command
+        {
+            public NewECCommand()
+                : base(name: "EC", description: "Creates a new JWK of type 'EC'")
+            {
+                Handler = CommandHandler.Create(typeof(NewECCommandHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new[] { typeof(InvocationContext) })!);
+            }
+
+            internal sealed class NewECCommandHandler : NewAsymmetricCommandHandler<ECJwk>
+            {
+                private readonly string _curve;
+
+                public NewECCommandHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
+                    : base(outputPath, publicOutputPath, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
+                {
+                    _curve = curve;
+                }
+
+                public override Task<int> InvokeAsync(InvocationContext context)
+                {
+                    return base.InvokeAsync(context);
+                }
+
+                protected override ECJwk GenerateKey(IConsole console)
+                {
+                    ECJwk key;
+                    var stopwatch = new Stopwatch();
+                    if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
+                    {
+                        if (EllipticalCurve.TryParse(_curve, out var curve))
+                        {
+                            if (EllipticalCurve.TryGetSupportedCurve(signatureAlgorithm, out var curve2))
+                            {
+                                if (curve.Id != curve2.Id)
+                                {
+                                    throw new InvalidOperationException($@"Unable to generate 'EC' JWK. Curve '{curve}' and algorithm '{signatureAlgorithm}' are not compatible'. Use algorithm '{curve.SupportedSignatureAlgorithm}' with curve '{curve}', or curve '{curve2}' with algorithm '{signatureAlgorithm}'.");
+                                }
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException($@"Unable to generate 'EC' JWK. Curve '{curve}' and algorithm '{signatureAlgorithm}' are not compatible'. Use algorithm '{curve.SupportedSignatureAlgorithm}' with curve '{curve}'.");
+                            }
+                        }
+
+                        console.Verbose($@"Generating 'EC' JWK of {signatureAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
+                        stopwatch.Start();
+                        key = ECJwk.GeneratePrivateKey(signatureAlgorithm, computeThumbprint: !_noKid);
+                    }
+                    else if (EllipticalCurve.TryParse(_curve, out var curve))
+                    {
+                        if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
+                        {
+                            console.Verbose($@"Generating 'EC' JWK for algorithm {keyManagementAlgorithm} and curve {curve}...");
+                            stopwatch.Start();
+                            key = ECJwk.GeneratePrivateKey(curve, keyManagementAlgorithm, computeThumbprint: !_noKid);
+                        }
+                        else
+                        {
+                            console.Verbose($@"Generating 'EC' JWK for curve {curve}...");
+                            stopwatch.Start();
+                            key = ECJwk.GeneratePrivateKey(curve, computeThumbprint: !_noKid);
+                        }
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid curve or a valid algorithm.");
+                    }
+
+                    console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
+                    if (_kid != null)
+                    {
+                        console.Verbose($"kid: {_kid}");
+                        key.Kid = JsonEncodedText.Encode(_kid);
+                    }
+                    else if (!_noKid)
+                    {
+                        console.Verbose($"kid: {key.Kid}");
+                    }
+
+                    if (_use != null)
+                    {
+                        console.Verbose($"use: {_use}");
+                        key.Use = JsonEncodedText.Encode(_use);
+                    }
+
+                    if (_keyOps != null && _keyOps.Count != 0)
+                    {
+                        console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
+                        foreach (var keyOps in _keyOps)
+                        {
+                            if (keyOps != null)
+                            {
+                                key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
+                            }
+                        }
+                    }
+
+                    return key;
+                }
+            }
+        }
+
         internal static Command Create()
         {
-            var command = new Command("new", "Creates a new JWK")
+            var command = new NewCommand()
             {
-                new Command("oct", "Creates a new JWK of type 'oct'")
-                    {
-                        Handler = CommandHandler.Create(typeof(NewSymmetricHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new [] { typeof(InvocationContext)})!)
-                    }
+                new NewSymmetricCommand()
                     .RequireKeyLength(8, 512, 8)
                     .OptionalOutputPath("The shared key output path.")
                     .OptionalEncryptionPassword()
                     .JwkParameters()
                     .Force()
                     .Verbose(),
-                new Command("RSA", "Creates a new JWK of type 'RSA'")
-                    {
-                        Handler = CommandHandler.Create(typeof(NewRsaHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new [] { typeof(InvocationContext)})!)
-                    }
+                new NewRsaCommand()
                     .RequireKeyLength(0, 16384, 256)
                     .OptionalPrivateKeyOutputPath()
                     .OptionalPublicKeyOutputPath()
@@ -39,10 +325,7 @@ namespace JsonWebToken.Tools.Jwk
                     .JwkParameters()
                     .Force()
                     .Verbose(),
-                new Command("EC", "Creates a new JWK of type 'EC'")
-                    {
-                        Handler = CommandHandler.Create(typeof(NewECHandler).GetMethod(nameof(ICommandHandler.InvokeAsync), new [] { typeof(InvocationContext)})!)
-                    }
+                new NewECCommand()
                     .RequireCurve()
                     .OptionalPrivateKeyOutputPath()
                     .OptionalPublicKeyOutputPath()
@@ -55,7 +338,7 @@ namespace JsonWebToken.Tools.Jwk
             return command;
         }
 
-        internal abstract class NewHandlerBase<TJwk> : ICommandHandler where TJwk : JsonWebToken.Jwk
+        internal abstract class NewCommandHandlerBase<TJwk> : ICommandHandler where TJwk : JsonWebToken.Jwk
         {
             protected readonly FileInfo? _outputPath;
             protected readonly FileInfo? _publicOutputPath;
@@ -70,7 +353,7 @@ namespace JsonWebToken.Tools.Jwk
             protected readonly bool _force;
             protected readonly IStore _store;
 
-            protected NewHandlerBase(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
+            protected NewCommandHandlerBase(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
             {
                 _outputPath = outputPath;
                 _publicOutputPath = publicOutputPath;
@@ -120,101 +403,9 @@ Password derivation salt size: {_saltSize} bits");
             }
         }
 
-        internal sealed class NewSymmetricHandler : NewHandlerBase<SymmetricJwk>
+        internal abstract class NewAsymmetricCommandHandler<TJwk> : NewCommandHandlerBase<TJwk> where TJwk : AsymmetricJwk
         {
-            private readonly int _keyLength;
-
-            public NewSymmetricHandler(FileInfo? outputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
-                : base(outputPath, null, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
-            {
-                _keyLength = length;
-            }
-
-            protected override SymmetricJwk GenerateKey(IConsole console)
-            {
-                SymmetricJwk key;
-                var stopwatch = new Stopwatch();
-                if (_keyLength != 0)
-                {
-                    console.Verbose($@"Generating 'oct' JWK of {_keyLength} bits...");
-                    stopwatch.Start();
-                    key = SymmetricJwk.GenerateKey(_keyLength, computeThumbprint: !_noKid);
-                }
-                else if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
-                {
-                    console.Verbose($@"Generating 'oct' JWK of {signatureAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
-                    stopwatch.Start();
-                    key = SymmetricJwk.GenerateKey(signatureAlgorithm, computeThumbprint: !_noKid);
-                }
-                else if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
-                {
-                    console.Verbose($@"Generating 'oct' JWK of {keyManagementAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
-                    stopwatch.Start();
-                    key = SymmetricJwk.GenerateKey(keyManagementAlgorithm, computeThumbprint: !_noKid);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid key length or a valid algorithm.");
-                }
-
-                console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
-                if (_kid != null)
-                {
-                    console.Verbose($"kid: {_kid}");
-                    key.Kid = JsonEncodedText.Encode(_kid);
-                }
-                else if (!_noKid)
-                {
-                    console.Verbose($"kid: {key.Kid}");
-                }
-
-                if (_use != null)
-                {
-                    console.Verbose($"use: {_use}");
-                    key.Use = JsonEncodedText.Encode(_use);
-                }
-
-                if (_keyOps != null && _keyOps.Count != 0)
-                {
-                    console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
-                    foreach (var keyOps in _keyOps)
-                    {
-                        if (keyOps != null)
-                        {
-                            key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
-                        }
-                    }
-                }
-
-                return key;
-            }
-
-            public override async Task<int> InvokeAsync(IConsole console)
-            {
-                var key = GenerateKey(console);
-                string value = EncryptKey(console, key);
-                if (_outputPath is null)
-                {
-                    console.Write(value);
-                }
-                else
-                {
-                    console.Verbose($"Writing JWK into file {_outputPath}...");
-                    await _store.Write(_outputPath.FullName, value, _force);
-                    console.Verbose("Done.");
-                }
-
-                return 0;
-            }
-            public override Task<int> InvokeAsync(InvocationContext context)
-            {
-                return base.InvokeAsync(context);
-            }
-        }
-
-        internal abstract class NewAsymmetricHandler<TJwk> : NewHandlerBase<TJwk> where TJwk : AsymmetricJwk
-        {
-            protected NewAsymmetricHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
+            protected NewAsymmetricCommandHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
                 : base(outputPath, publicOutputPath, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
             {
             }
@@ -246,174 +437,6 @@ Password derivation salt size: {_saltSize} bits");
             public override Task<int> InvokeAsync(InvocationContext context)
             {
                 return base.InvokeAsync(context);
-            }
-        }
-
-        internal sealed class NewRsaHandler : NewAsymmetricHandler<RsaJwk>
-        {
-            private readonly int _keyLength;
-
-            public NewRsaHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
-                : base(outputPath, publicOutputPath, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
-            {
-                _keyLength = length;
-            }
-
-            protected override RsaJwk GenerateKey(IConsole console)
-            {
-                RsaJwk key;
-                var stopwatch = new Stopwatch();
-                if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
-                {
-                    console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits for algorithm {signatureAlgorithm}...");
-                    stopwatch.Start();
-                    key = RsaJwk.GeneratePrivateKey(_keyLength, signatureAlgorithm, computeThumbprint: !_noKid);
-                }
-                else if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
-                {
-                    console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits for algorithm {keyManagementAlgorithm}...");
-                    stopwatch.Start();
-                    key = RsaJwk.GeneratePrivateKey(_keyLength, keyManagementAlgorithm, computeThumbprint: !_noKid);
-                }
-                else if (_keyLength != 0)
-                {
-                    console.Verbose($@"Generating 'RSA' JWK of {_keyLength} bits...");
-                    stopwatch.Start();
-                    key = RsaJwk.GeneratePrivateKey(_keyLength, computeThumbprint: !_noKid);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid key length or a valid algorithm.");
-                }
-
-                console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
-                if (_kid != null)
-                {
-                    console.Verbose($"kid: {_kid}");
-                    key.Kid = JsonEncodedText.Encode(_kid);
-                }
-                else if (!_noKid)
-                {
-                    console.Verbose($"kid: {key.Kid}");
-                }
-
-                if (_use != null)
-                {
-                    console.Verbose($"use: {_use}");
-                    key.Use = JsonEncodedText.Encode(_use);
-                }
-
-                if (_keyOps != null && _keyOps.Count != 0)
-                {
-                    console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
-                    foreach (var keyOps in _keyOps)
-                    {
-                        if (keyOps != null)
-                        {
-                            key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
-                        }
-                    }
-                }
-
-                return key;
-            }
-
-            public override Task<int> InvokeAsync(InvocationContext context)
-            {
-                return base.InvokeAsync(context);
-            }
-        }
-
-        internal sealed class NewECHandler : NewAsymmetricHandler<ECJwk>
-        {
-            private readonly string _curve;
-
-            public NewECHandler(FileInfo? outputPath, FileInfo? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, List<string?> keyOps, string? kid, bool noKid, bool force, IStore store)
-                : base(outputPath, publicOutputPath, password, iterationCount, saltSize, alg, use, keyOps, kid, noKid, force, store)
-            {
-                _curve = curve;
-            }
-
-            public override Task<int> InvokeAsync(InvocationContext context)
-            {
-                return base.InvokeAsync(context);
-            }
-
-            protected override ECJwk GenerateKey(IConsole console)
-            {
-                ECJwk key;
-                var stopwatch = new Stopwatch();
-                if (SignatureAlgorithm.TryParse(_alg, out var signatureAlgorithm))
-                {
-                    if (EllipticalCurve.TryParse(_curve, out var curve))
-                    {
-                        if (EllipticalCurve.TryGetSupportedCurve(signatureAlgorithm, out var curve2))
-                        {
-                            if (curve.Id != curve2.Id)
-                            {
-                                throw new InvalidOperationException($@"Unable to generate 'EC' JWK. Curve '{curve}' and algorithm '{signatureAlgorithm}' are not compatible'. Use algorithm '{curve.SupportedSignatureAlgorithm}' with curve '{curve}', or curve '{curve2}' with algorithm '{signatureAlgorithm}'.");
-                            }
-                        }
-                        else
-                        {
-                            throw new InvalidOperationException($@"Unable to generate 'EC' JWK. Curve '{curve}' and algorithm '{signatureAlgorithm}' are not compatible'. Use algorithm '{curve.SupportedSignatureAlgorithm}' with curve '{curve}'.");
-                        }
-                    }
-
-                    console.Verbose($@"Generating 'EC' JWK of {signatureAlgorithm.RequiredKeySizeInBits} bits for algorithm {signatureAlgorithm}...");
-                    stopwatch.Start();
-                    key = ECJwk.GeneratePrivateKey(signatureAlgorithm, computeThumbprint: !_noKid);
-                }
-                else if (EllipticalCurve.TryParse(_curve, out var curve))
-                {
-                    if (KeyManagementAlgorithm.TryParse(_alg, out var keyManagementAlgorithm))
-                    {
-                        console.Verbose($@"Generating 'EC' JWK for algorithm {keyManagementAlgorithm} and curve {curve}...");
-                        stopwatch.Start();
-                        key = ECJwk.GeneratePrivateKey(curve, keyManagementAlgorithm, computeThumbprint: !_noKid);
-                    }
-                    else
-                    {
-                        console.Verbose($@"Generating 'EC' JWK for curve {curve}...");
-                        stopwatch.Start();
-                        key = ECJwk.GeneratePrivateKey(curve, computeThumbprint: !_noKid);
-                    }
-                }
-                else
-                {
-                    throw new InvalidOperationException("Unable to found the way to generate the key. Please specify a valid curve or a valid algorithm.");
-                }
-
-                console.Verbose($"JWK generated in {stopwatch.ElapsedMilliseconds} ms.");
-                if (_kid != null)
-                {
-                    console.Verbose($"kid: {_kid}");
-                    key.Kid = JsonEncodedText.Encode(_kid);
-                }
-                else if (!_noKid)
-                {
-                    console.Verbose($"kid: {key.Kid}");
-                }
-
-                if (_use != null)
-                {
-                    console.Verbose($"use: {_use}");
-                    key.Use = JsonEncodedText.Encode(_use);
-                }
-
-                if (_keyOps != null && _keyOps.Count != 0)
-                {
-                    console.Verbose($"key_ops: {string.Join(", ", _keyOps)}");
-                    foreach (var keyOps in _keyOps)
-                    {
-                        if (keyOps != null)
-                        {
-                            key.KeyOps.Add(JsonEncodedText.Encode(keyOps));
-                        }
-                    }
-                }
-
-                return key;
             }
         }
     }

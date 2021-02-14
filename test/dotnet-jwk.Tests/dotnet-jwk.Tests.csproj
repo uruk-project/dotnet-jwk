@@ -27,4 +27,13 @@
 		<ProjectReference Include="..\..\src\dotnet-jwk\dotnet-jwk.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="key.cer">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="key.pem">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

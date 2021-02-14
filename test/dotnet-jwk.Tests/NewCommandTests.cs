@@ -28,7 +28,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_Symmetric(string? outputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             TestStore store = new TestStore();
-            var command = new NewCommand.NewSymmetricHandler(outputPath is null ? null : new FileInfo(outputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewSymmetricCommand.NewSymmetricCommandHandler(outputPath is null ? null : new FileInfo(outputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -58,7 +58,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public void Execute_Symmetric_Fail(string? outputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             TestStore store = new TestStore();
-            var command = new NewCommand.NewSymmetricHandler(outputPath is null ? null : new FileInfo(outputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewSymmetricCommand.NewSymmetricCommandHandler(outputPath is null ? null : new FileInfo(outputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAnyAsync<InvalidOperationException>(() => command.InvokeAsync(console));
@@ -79,7 +79,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_Rsa(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             TestStore store = new TestStore();
-            var command = new NewCommand.NewRsaHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewRsaCommand.NewRsaCommandHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -114,7 +114,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public void Execute_Rsa_Fail(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, int length, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             TestStore store = new TestStore();
-            var command = new NewCommand.NewRsaHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewRsaCommand.NewRsaCommandHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, length, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAnyAsync<InvalidOperationException>(() => command.InvokeAsync(console));
@@ -145,7 +145,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
             }
 
             TestStore store = new TestStore();
-            var command = new NewCommand.NewECHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, curve, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewECCommand.NewECCommandHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, curve, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -181,7 +181,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public void Execute_EC_Fail(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             TestStore store = new TestStore();
-            var command = new NewCommand.NewECHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, curve, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
+            var command = new NewCommand.NewECCommand.NewECCommandHandler(outputPath is null ? null : new FileInfo(outputPath), publicOutputPath is null ? null : new FileInfo(publicOutputPath), password, iterationCount, saltSize, curve, alg, use, keyOps is null ? new List<string?>() : new List<string?>(keyOps), kid, noKid, force, store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAnyAsync<InvalidOperationException>(() => command.InvokeAsync(console));

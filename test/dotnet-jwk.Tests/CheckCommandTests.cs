@@ -19,7 +19,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_Success(string description, string json)
         {
             TestStore store = new TestStore(json);
-            var command = new CheckCommand(new FileInfo("./fake_file.json"), store);
+            var command = new CheckCommand.CheckCommandHandler(new FileInfo("./fake_file.json"), store);
 
             TestConsole console = new TestConsole();
             await command.InvokeAsync(console);
@@ -43,7 +43,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public void Execute_Fail(string description, string json)
         {
             TestStore store = new TestStore(json);
-            var command = new CheckCommand(new FileInfo("./fake_file.json"), store);
+            var command = new CheckCommand.CheckCommandHandler(new FileInfo("./fake_file.json"), store);
 
             TestConsole console = new TestConsole();
             Assert.ThrowsAnyAsync<JwkCheckException>(() => command.InvokeAsync(console));
