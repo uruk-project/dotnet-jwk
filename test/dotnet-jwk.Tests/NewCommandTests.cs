@@ -126,7 +126,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         [InlineData("./output.jwk", null, "password", 4096u, null, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, "password", null, 16u, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, "password", 4096u, 16u, "P-256", "ES256", "sig", new string[] { "sign" }, "billy", false, false)]
-        [InlineData("./output.jwk", null, "password", 4096u, 16u, "P-256X", "ES256X", "sig", new string[] { "sign" }, "billy", false, false)]
+        [InlineData("./output.jwk", null, "password", 4096u, 16u, "secp256k1", "ES256X", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, "password", 4096u, 16u, "P-384", "ES384", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, "password", 4096u, 16u, "P-521", "ES512", "sig", new string[] { "sign" }, "billy", false, false)]
         [InlineData("./output.jwk", null, null, null, null, "P-256", null, null, null, null, false, false)]
@@ -139,7 +139,7 @@ namespace JsonWebToken.Tools.Jwk.Tests
         public async Task Execute_EC(string? outputPath, string? publicOutputPath, string? password, uint? iterationCount, uint? saltSize, string curve, string? alg, string? use, string?[] keyOps, string? kid, bool noKid, bool force)
         {
             // secp256k1 is not supported on MacOS
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && (curve == "secp256k1" || curve == "P-256X"))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && curve == "secp256k1")
             {
                 return;
             }
