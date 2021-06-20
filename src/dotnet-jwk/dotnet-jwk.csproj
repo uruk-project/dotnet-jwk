@@ -9,6 +9,7 @@
 		<PackageOutputPath>./nupkg</PackageOutputPath>
 		<Nullable>enable</Nullable>
 		<Version>1.0.0-beta.1</Version>
+    <LangVersion>9.0</LangVersion>
 
 		<SignAssembly>true</SignAssembly>
 		<AssemblyOriginatorKeyFile>../../dotnet-jwk.snk</AssemblyOriginatorKeyFile>
